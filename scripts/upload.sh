@@ -143,6 +143,8 @@ if [[ ${LOCAL} == "true" ]]; then
 	elif [[ ${DIRECTORY:0:1} != "/" ]]; then
 		DIRECTORY="${ALLSKY_WEBSITE}/${DIRECTORY}"
 	fi
+	# Create directory if it doesn't exist
+	mkdir -p "${DIRECTORY}"
 	# No need to set the lock for local copies - they are fast.
 	if [[ ${SILENT} == "false" && ${ALLSKY_DEBUG_LEVEL} -ge 3 ]]; then
 		echo "${ME}: Copying ${FILE_TO_UPLOAD} to ${DIRECTORY}/${DESTINATION_NAME}"
@@ -238,6 +240,13 @@ if [[ ${PROTOCOL} == "s3" ]] ; then
 elif [[ "${PROTOCOL}" == "scp" || "${PROTOCOL}" == "rsync" ]] ; then
 	get_REMOTE_USER_HOST_PORT
 	SSH_KEY_FILE="$( settings ".${PREFIX}_SSH_KEY_FILE" "${ALLSKY_ENV}" )"
+
+	# Create directory on remote server if needed
+	if [[ -n ${DIRECTORY} ]]; then
+		[[ -n ${REMOTE_PORT} ]] && SSH_PORT_ARG="-p ${REMOTE_PORT}" || SSH_PORT_ARG=""
+		# shellcheck disable=SC2086
+		ssh -i "${SSH_KEY_FILE}" ${SSH_PORT_ARG} "${REMOTE_USER}@${REMOTE_HOST}" "mkdir -p '${DIRECTORY}'" 2>/dev/null || true
+	fi
 
 	DEST="${REMOTE_USER}@${REMOTE_HOST}:${DIRECTORY}/${DESTINATION_NAME}"
 	if [[ ${SILENT} == "false" && ${ALLSKY_DEBUG_LEVEL} -ge 3 ]]; then
@@ -378,6 +387,8 @@ else # sftp/ftp/ftps
 		fi
 
 		if [[ -n ${DIRECTORY} ]]; then
+			# Create directory if it doesn't exist, then cd into it
+			echo "mkdir -p '${DIRECTORY}' 2>/dev/null || true"
 			# lftp outputs error message so we don't have to.
 			echo "cd '${DIRECTORY}' || exit 1"
 			if [[ ${DEBUG} == "true" ]]; then
