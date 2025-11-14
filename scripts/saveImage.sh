@@ -474,22 +474,28 @@ if [[ ${IMG_UPLOAD_FREQUENCY} -gt 0 ]]; then
 		if [[ ${R_WEB} == "true" ]]; then
 			if [[ ${S_remotewebsiteimageuploadoriginalname} == "true" ]]; then
 				DESTINATION_NAME=""
+				# Upload to images/YYYYMMDD/ directory structure
+				UPLOAD_DIR="images/${DATE_NAME}"
 			else
 				DESTINATION_NAME="${FULL_FILENAME}"
+				# Goes in root of Website so second arg is "".
+				UPLOAD_DIR=""
 			fi
-			# Goes in root of Website so second arg is "".
-			upload_all --remote-web "${FILE_TO_UPLOAD}" "" "${DESTINATION_NAME}" "SaveImage"
+			upload_all --remote-web "${FILE_TO_UPLOAD}" "${UPLOAD_DIR}" "${DESTINATION_NAME}" "SaveImage"
 			((RET += $?))
 		fi
 
 		if [[ ${R_SERVER} == "true" ]]; then
 			if [[ ${S_remoteserverimageuploadoriginalname} == "true" ]]; then
 				DESTINATION_NAME=""
+				# Upload to images/YYYYMMDD/ directory structure
+				UPLOAD_DIR="images/${DATE_NAME}"
 			else
 				DESTINATION_NAME="${FULL_FILENAME}"
+				# Goes in root of Website so second arg is "".
+				UPLOAD_DIR=""
 			fi
-			# Goes in root of Website so second arg is "".
-			upload_all --remote-server "${FILE_TO_UPLOAD}" "" "${DESTINATION_NAME}" "SaveImage"
+			upload_all --remote-server "${FILE_TO_UPLOAD}" "${UPLOAD_DIR}" "${DESTINATION_NAME}" "SaveImage"
 			((RET += $?))
 		fi
 

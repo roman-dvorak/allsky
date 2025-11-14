@@ -72,6 +72,12 @@ function ListDays(){
 	<div class="panel-heading"><i class="fa fa-image fa-fw" style="margin-right: 10px"></i>Images</div>
 	<div class="panel-body">
 	<div class="row">
+	<p style="margin: 10px 0 15px 10px;">
+		<strong>Note:</strong> This page shows locally captured images. 
+		To view uploaded images organized by date, visit the 
+		<a href="/allsky/images/" target="_blank" style="font-weight: bold;">Uploaded Images Gallery</a>
+		<i class="fa fa-external-link-alt" style="font-size: 0.8em;"></i>
+	</p>
 	<form action="?page=<?php echo $page ?>" method="POST" onsubmit="return confirm('Are you sure you want to delete ALL images for that day?');">
 	<table style='margin-top: 15px; text-align:center'>
 	  <thead>
