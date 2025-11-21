@@ -379,6 +379,8 @@ else # sftp/ftp/ftps
 		fi
 
 		if [[ -n ${DIRECTORY} ]]; then
+			# Create directory if it doesn't exist (for hierarchical image storage)
+			echo "mkdir -p '${DIRECTORY}'"
 			# lftp outputs error message so we don't have to.
 			echo "cd '${DIRECTORY}' || exit 1"
 			if [[ ${DEBUG} == "true" ]]; then
