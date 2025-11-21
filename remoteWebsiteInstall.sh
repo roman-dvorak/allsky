@@ -878,6 +878,8 @@ function upload_remote_website()
 		EXCLUDE_FILES+=" --exclude-glob=keograms/*.jpg"
 		EXCLUDE_FILES+=" --exclude-glob=startrails/*.jpg"
 		EXCLUDE_FILES+=" --exclude-glob=meteors/*.jpg"
+		EXCLUDE_FILES+=" --exclude-glob=images/*/*.jpg"
+		EXCLUDE_FILES+=" --exclude-glob=raw_images/*/*.jpg"
 		EXCLUDE_FILES+=" --exclude-glob=*/thumbnails/*.jpg"
 		DIALOG_TEXT+=" (without videos, images, and their thumbnails)."
 		MSG="This may take a minute or two"

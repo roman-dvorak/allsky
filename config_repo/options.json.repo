@@ -1779,12 +1779,22 @@
 {
 "name" : "remotewebsiteimageuploadoriginalname",
 "default" : false,
-"description" : "Enable to upload images using YYYYMMDDHHMMSS naming.  <strong>Rarely used.</strong>",
+"description" : "Enable to upload images using YYYYMMDDHHMMSS naming to dated directory structure (images/YYYY/MMDD/).",
 "label" : "Upload With Original Name",
 "label_prefix" : "Remote Website",
 "type" : "boolean",
 "carryforward" : true,
 "valuedependson" : "imageuploadfrequency=[1-9]*"
+},
+{
+"name" : "remotewebsitestorerawimage",
+"default" : false,
+"description" : "Enable to also upload raw/unprocessed images to dated directory structure (raw_images/YYYY/MMDD/).",
+"label" : "Store Raw Images",
+"label_prefix" : "Remote Website",
+"type" : "boolean",
+"carryforward" : true,
+"booldependson" : "remotewebsiteimageuploadoriginalname"
 },
 
 
@@ -1989,12 +1999,22 @@
 {
 "name" : "remoteserverimageuploadoriginalname",
 "default" : false,
-"description" : "Enable to upload images using YYYYMMDDHHMMSS naming.",
+"description" : "Enable to upload images using YYYYMMDDHHMMSS naming to dated directory structure (images/YYYY/MMDD/).",
 "label" : "Upload With Original Name",
 "label_prefix" : "Remote Server",
 "type" : "boolean",
 "carryforward" : true,
 "valuedependson" : "imageuploadfrequency=[1-9]*"
+},
+{
+"name" : "remoteserverstorerawimage",
+"default" : false,
+"description" : "Enable to also upload raw/unprocessed images to dated directory structure (raw_images/YYYY/MMDD/).",
+"label" : "Store Raw Images",
+"label_prefix" : "Remote Server",
+"type" : "boolean",
+"carryforward" : true,
+"booldependson" : "remoteserverimageuploadoriginalname"
 },
 {
 "name" : "remoteservervideodestinationname",

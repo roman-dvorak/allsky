@@ -462,27 +462,57 @@ if [[ ${IMG_UPLOAD_FREQUENCY} -gt 0 ]]; then
 			FILE_TO_UPLOAD="${CURRENT_IMAGE}"
 		fi
 
-		if [[ ${R_WEB} == "true" ]]; then
-			if [[ ${S_remotewebsiteimageuploadoriginalname} == "true" ]]; then
-				DESTINATION_NAME=""
-			else
-				DESTINATION_NAME="${ALLSKY_FULL_FILENAME}"
+	if [[ ${R_WEB} == "true" ]]; then
+		if [[ ${S_remotewebsiteimageuploadoriginalname} == "true" ]]; then
+			# Upload to hierarchical directory structure: images/YYYY/MMDD/
+			YEAR="${DATE_NAME:0:4}"
+			MMDD="${DATE_NAME:4:4}"
+			UPLOAD_DIR="images/${YEAR}/${MMDD}"
+			DESTINATION_NAME="${IMAGE_NAME}"
+			[[ ${ALLSKY_DEBUG_LEVEL} -ge 3 ]] && echo "${ME}: Uploading to ${UPLOAD_DIR}/${DESTINATION_NAME}"
+			upload_all --remote-web "${FILE_TO_UPLOAD}" "${UPLOAD_DIR}" "${DESTINATION_NAME}" "SaveImage"
+			((RET += $?))
+
+			# Upload raw image if enabled
+			if [[ ${S_remotewebsitestorerawimage} == "true" && -f ${CURRENT_IMAGE} ]]; then
+				RAW_UPLOAD_DIR="raw_images/${YEAR}/${MMDD}"
+				[[ ${ALLSKY_DEBUG_LEVEL} -ge 3 ]] && echo "${ME}: Uploading raw image to ${RAW_UPLOAD_DIR}/${DESTINATION_NAME}"
+				upload_all --remote-web "${CURRENT_IMAGE}" "${RAW_UPLOAD_DIR}" "${DESTINATION_NAME}" "SaveImageRaw"
+				((RET += $?))
 			fi
+		else
+			DESTINATION_NAME="${ALLSKY_FULL_FILENAME}"
 			# Goes in root of Website so second arg is "".
 			upload_all --remote-web "${FILE_TO_UPLOAD}" "" "${DESTINATION_NAME}" "SaveImage"
 			((RET += $?))
 		fi
+	fi
 
-		if [[ ${R_SERVER} == "true" ]]; then
-			if [[ ${S_remoteserverimageuploadoriginalname} == "true" ]]; then
-				DESTINATION_NAME=""
-			else
-				DESTINATION_NAME="${ALLSKY_FULL_FILENAME}"
+	if [[ ${R_SERVER} == "true" ]]; then
+		if [[ ${S_remoteserverimageuploadoriginalname} == "true" ]]; then
+			# Upload to hierarchical directory structure: images/YYYY/MMDD/
+			YEAR="${DATE_NAME:0:4}"
+			MMDD="${DATE_NAME:4:4}"
+			UPLOAD_DIR="images/${YEAR}/${MMDD}"
+			DESTINATION_NAME="${IMAGE_NAME}"
+			[[ ${ALLSKY_DEBUG_LEVEL} -ge 3 ]] && echo "${ME}: Uploading to ${UPLOAD_DIR}/${DESTINATION_NAME}"
+			upload_all --remote-server "${FILE_TO_UPLOAD}" "${UPLOAD_DIR}" "${DESTINATION_NAME}" "SaveImage"
+			((RET += $?))
+
+			# Upload raw image if enabled
+			if [[ ${S_remoteserverstorerawimage} == "true" && -f ${CURRENT_IMAGE} ]]; then
+				RAW_UPLOAD_DIR="raw_images/${YEAR}/${MMDD}"
+				[[ ${ALLSKY_DEBUG_LEVEL} -ge 3 ]] && echo "${ME}: Uploading raw image to ${RAW_UPLOAD_DIR}/${DESTINATION_NAME}"
+				upload_all --remote-server "${CURRENT_IMAGE}" "${RAW_UPLOAD_DIR}" "${DESTINATION_NAME}" "SaveImageRaw"
+				((RET += $?))
 			fi
+		else
+			DESTINATION_NAME="${ALLSKY_FULL_FILENAME}"
 			# Goes in root of Website so second arg is "".
 			upload_all --remote-server "${FILE_TO_UPLOAD}" "" "${DESTINATION_NAME}" "SaveImage"
 			((RET += $?))
 		fi
+	fi
 
 		[[ ${RESIZE_UPLOADS} == "true" ]] && rm -f "${FILE_TO_UPLOAD}"	# was a temporary file
 	fi
@@ -517,6 +547,31 @@ fi
 [[ -n ${ALLSKY_TIMELAPSE_PID_FILE} ]] && rm -f "${ALLSKY_TIMELAPSE_PID_FILE}"
 
 # We create ${WEBSITE_FILE} as late as possible to avoid it being overwritten.
-mv "${CURRENT_IMAGE}" "${WEBSITE_FILE}" || echo "ERROR: ${ME} Unable to rename current image to final name." >&2
+# If using hierarchical upload, create a symlink from image.jpg to the dated structure
+if [[ ( ${S_remotewebsiteimageuploadoriginalname} == "true" && ${S_useremotewebsite} == "true" ) || 
+      ( ${S_remoteserverimageuploadoriginalname} == "true" && ${S_useremoteserver} == "true" ) ]]; then
+	# Create relative symlink: image.jpg -> images/YYYY/MMDD/YYYYMMDDHHMMSS.jpg
+	YEAR="${DATE_NAME:0:4}"
+	MMDD="${DATE_NAME:4:4}"
+	RELATIVE_PATH="images/${YEAR}/${MMDD}/${IMAGE_NAME}"
+	
+	# Move current image to final location first
+	mv "${CURRENT_IMAGE}" "${WEBSITE_FILE}" || echo "ERROR: ${ME} Unable to rename current image to final name." >&2
+	
+	# Create/update symlink for local website (if enabled)
+	if [[ ${S_uselocalwebsite} == "true" ]]; then
+		SYMLINK_TARGET="${WORKING_DIR}/${ALLSKY_FULL_FILENAME}"
+		rm -f "${SYMLINK_TARGET}"
+		ln -sf "${RELATIVE_PATH}" "${SYMLINK_TARGET}" 2>/dev/null || {
+			# If symlink creation fails, create image.txt with path instead
+			[[ ${ALLSKY_DEBUG_LEVEL} -ge 2 ]] && echo "${ME}: Symlink failed, creating image.txt instead"
+			echo "${RELATIVE_PATH}" > "${WORKING_DIR}/image.txt"
+		}
+		[[ ${ALLSKY_DEBUG_LEVEL} -ge 3 ]] && echo "${ME}: Created symlink/reference to ${RELATIVE_PATH}"
+	fi
+else
+	# Standard behavior: rename to website file
+	mv "${CURRENT_IMAGE}" "${WEBSITE_FILE}" || echo "ERROR: ${ME} Unable to rename current image to final name." >&2
+fi
 
 exit 0

@@ -247,10 +247,11 @@ elif [[ "${PROTOCOL}" == "scp" || "${PROTOCOL}" == "rsync" ]] ; then
 		[[ -n ${REMOTE_PORT} ]] && REMOTE_PORT="-P ${REMOTE_PORT}"
 		# shellcheck disable=SC2086
 		OUTPUT="$( scp -i "${SSH_KEY_FILE}" ${REMOTE_PORT} "${FILE_TO_UPLOAD}" "${DEST}" 2>&1 )"
- 	else
+	else
 		[[ -n ${REMOTE_PORT} ]] && REMOTE_PORT="-p ${REMOTE_PORT}"
+		# Use --mkpath to create directories if they don't exist (rsync 3.2.3+)
 		# shellcheck disable=SC2086
-		OUTPUT="$( rsync -e "ssh -i ${SSH_KEY_FILE} ${REMOTE_PORT}" "${FILE_TO_UPLOAD}" "${DEST}" 2>&1 )"
+		OUTPUT="$( rsync --mkpath -e "ssh -i ${SSH_KEY_FILE} ${REMOTE_PORT}" "${FILE_TO_UPLOAD}" "${DEST}" 2>&1 )"
   	fi
 	RET=$?
 
