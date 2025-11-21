@@ -9,9 +9,8 @@ $includeGoogleAnalytics = v("includeGoogleAnalytics", false, $homePage);
 $thumbnailsortorder = v("thumbnailsortorder", "ascending", $homePage);
 $thumbnailSizeX = v("thumbnailsizex", 100, $homePage);
 
-// Get year and date from URL parameters
-$year = isset($_GET['year']) ? $_GET['year'] : '';
-$mmdd = isset($_GET['mmdd']) ? $_GET['mmdd'] : '';
+// Get date from URL parameter (YYYYMMDD format)
+$date = isset($_GET['date']) ? $_GET['date'] : '';
 $view_raw = isset($_GET['raw']) && $_GET['raw'] == '1';
 
 $base_dir = $view_raw ? 'raw_images' : 'images';
@@ -102,9 +101,8 @@ $title = $view_raw ? "Raw Images Archive" : "Images Archive";
 		// Toggle between images and raw_images
 		if (is_dir("../raw_images")) {
 			$toggle_url = "index.php";
-			if ($year) $toggle_url .= "?year=$year";
-			if ($mmdd) $toggle_url .= ($year ? "&" : "?") . "mmdd=$mmdd";
-			if (!$view_raw) $toggle_url .= (($year || $mmdd) ? "&" : "?") . "raw=1";
+			if ($date) $toggle_url .= "?date=$date";
+			if (!$view_raw) $toggle_url .= ($date ? "&" : "?") . "raw=1";
 			
 			$toggle_text = $view_raw ? "View Processed Images" : "View Raw Images";
 			echo "<a href='$toggle_url' class='toggle-raw'><i class='fa fa-sync'></i> $toggle_text</a>";
@@ -121,17 +119,17 @@ function get_image_count($dir) {
 	return $files ? count($files) : 0;
 }
 
-// If both year and mmdd are specified, show images
-if ($year && $mmdd) {
-	$image_dir = "../$base_dir/$year/$mmdd";
+// If date is specified (YYYYMMDD format), show images for that date
+if ($date) {
+	$image_dir = "../$base_dir/$date";
 	
 	if (!is_dir($image_dir)) {
-		echo "<p style='text-align:center; color:red;'>No images found for $year-$mmdd</p>";
+		echo "<p style='text-align:center; color:red;'>No images found for $date</p>";
 	} else {
 		$images = glob($image_dir . "/*.{jpg,jpeg,png,JPG,JPEG,PNG}", GLOB_BRACE);
 		
 		if (!$images || count($images) == 0) {
-			echo "<p style='text-align:center;'>No images found for $year-$mmdd</p>";
+			echo "<p style='text-align:center;'>No images found for $date</p>";
 		} else {
 			// Sort images
 			if ($thumbnailsortorder === "descending") {
@@ -140,7 +138,9 @@ if ($year && $mmdd) {
 				sort($images);
 			}
 			
-			echo "<h2 style='text-align:center;'>Images for $year-" . substr($mmdd, 0, 2) . "-" . substr($mmdd, 2, 2) . "</h2>";
+			// Format date nicely: YYYYMMDD -> YYYY-MM-DD
+			$formatted_date = substr($date, 0, 4) . "-" . substr($date, 4, 2) . "-" . substr($date, 6, 2);
+			echo "<h2 style='text-align:center;'>Images for $formatted_date</h2>";
 			echo "<p style='text-align:center;'>Total: " . count($images) . " images</p>";
 			
 			// Display images with lightgallery
@@ -174,80 +174,36 @@ if ($year && $mmdd) {
 	}
 	
 	echo "<div style='text-align:center; margin-top:30px;'>";
-	echo "<a href='index.php" . ($view_raw ? "?raw=1" : "") . "&year=$year' class='back-link'><i class='fa fa-arrow-left'></i> Back to $year</a>";
+	echo "<a href='index.php" . ($view_raw ? "?raw=1" : "") . "' class='back-link'><i class='fa fa-arrow-left'></i> Back to All Dates</a>";
 	echo "</div>";
 
-// If only year is specified, show months (MMDD)
-} elseif ($year) {
-	$year_dir = "../$base_dir/$year";
-	
-	if (!is_dir($year_dir)) {
-		echo "<p style='text-align:center; color:red;'>No images found for year $year</p>";
-	} else {
-		$month_dirs = glob($year_dir . "/*", GLOB_ONLYDIR);
-		
-		if (!$month_dirs || count($month_dirs) == 0) {
-			echo "<p style='text-align:center;'>No images found for year $year</p>";
-		} else {
-			rsort($month_dirs); // Newest first
-			
-			echo "<h2 style='text-align:center;'>Days in $year</h2>";
-			echo '<div class="calendar-grid">';
-			
-			foreach ($month_dirs as $month_dir) {
-				$mmdd_val = basename($month_dir);
-				$count = get_image_count($month_dir);
-				
-				if ($count > 0) {
-					$month = substr($mmdd_val, 0, 2);
-					$day = substr($mmdd_val, 2, 2);
-					
-					echo "<a href='index.php?year=$year&mmdd=$mmdd_val" . ($view_raw ? "&raw=1" : "") . "' class='calendar-item'>";
-					echo "<div class='calendar-date'>$month-$day</div>";
-					echo "<div class='calendar-count'>$count images</div>";
-					echo "</a>";
-				}
-			}
-			
-			echo '</div>';
-		}
-	}
-	
-	echo "<div style='text-align:center; margin-top:30px;'>";
-	echo "<a href='index.php" . ($view_raw ? "?raw=1" : "") . "' class='back-link'><i class='fa fa-arrow-left'></i> Back to Years</a>";
-	echo "</div>";
 
-// Show available years
+// Show available dates (YYYYMMDD format)
 } else {
 	if (!is_dir("../$base_dir")) {
 		echo "<p style='text-align:center; color:red;'>No $base_dir directory found. Enable 'Upload With Original Name' in settings.</p>";
 	} else {
-		$year_dirs = glob("../$base_dir/*", GLOB_ONLYDIR);
+		$date_dirs = glob("../$base_dir/*", GLOB_ONLYDIR);
 		
-		if (!$year_dirs || count($year_dirs) == 0) {
+		if (!$date_dirs || count($date_dirs) == 0) {
 			echo "<p style='text-align:center;'>No archived images found yet.</p>";
 		} else {
-			rsort($year_dirs); // Newest first
+			rsort($date_dirs); // Newest first
 			
-			echo "<h2 style='text-align:center;'>Available Years</h2>";
+			echo "<h2 style='text-align:center;'>Available Dates</h2>";
 			echo '<div class="calendar-grid">';
 			
-			foreach ($year_dirs as $year_dir) {
-				$year_val = basename($year_dir);
+			foreach ($date_dirs as $date_dir) {
+				$date_val = basename($date_dir);
+				$count = get_image_count($date_dir);
 				
-				// Count total images in this year
-				$total = 0;
-				$month_dirs = glob($year_dir . "/*", GLOB_ONLYDIR);
-				if ($month_dirs) {
-					foreach ($month_dirs as $month_dir) {
-						$total += get_image_count($month_dir);
-					}
-				}
-				
-				if ($total > 0) {
-					echo "<a href='index.php?year=$year_val" . ($view_raw ? "&raw=1" : "") . "' class='calendar-item'>";
-					echo "<div class='calendar-year'>$year_val</div>";
-					echo "<div class='calendar-count'>$total images</div>";
+				if ($count > 0) {
+					// Format date nicely: YYYYMMDD -> YYYY-MM-DD
+					$formatted_date = substr($date_val, 0, 4) . "-" . substr($date_val, 4, 2) . "-" . substr($date_val, 6, 2);
+					
+					echo "<a href='index.php?date=$date_val" . ($view_raw ? "&raw=1" : "") . "' class='calendar-item'>";
+					echo "<div class='calendar-date'>$formatted_date</div>";
+					echo "<div class='calendar-count'>$count images</div>";
 					echo "</a>";
 				}
 			}

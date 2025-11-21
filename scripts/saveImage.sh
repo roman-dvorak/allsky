@@ -464,18 +464,18 @@ if [[ ${IMG_UPLOAD_FREQUENCY} -gt 0 ]]; then
 
 	if [[ ${R_WEB} == "true" ]]; then
 		if [[ ${S_remotewebsiteimageuploadoriginalname} == "true" ]]; then
-			# Upload to hierarchical directory structure: images/YYYY/MMDD/
-			YEAR="${DATE_NAME:0:4}"
-			MMDD="${DATE_NAME:4:4}"
-			UPLOAD_DIR="images/${YEAR}/${MMDD}"
+			# Upload to hierarchical directory structure: images/YYYYMMDD/
+			UPLOAD_DIR="images/${DATE_NAME}"
 			DESTINATION_NAME="${IMAGE_NAME}"
+			
 			[[ ${ALLSKY_DEBUG_LEVEL} -ge 3 ]] && echo "${ME}: Uploading to ${UPLOAD_DIR}/${DESTINATION_NAME}"
 			upload_all --remote-web "${FILE_TO_UPLOAD}" "${UPLOAD_DIR}" "${DESTINATION_NAME}" "SaveImage"
 			((RET += $?))
 
 			# Upload raw image if enabled
 			if [[ ${S_remotewebsitestorerawimage} == "true" && -f ${CURRENT_IMAGE} ]]; then
-				RAW_UPLOAD_DIR="raw_images/${YEAR}/${MMDD}"
+				RAW_UPLOAD_DIR="raw_images/${DATE_NAME}"
+				
 				[[ ${ALLSKY_DEBUG_LEVEL} -ge 3 ]] && echo "${ME}: Uploading raw image to ${RAW_UPLOAD_DIR}/${DESTINATION_NAME}"
 				upload_all --remote-web "${CURRENT_IMAGE}" "${RAW_UPLOAD_DIR}" "${DESTINATION_NAME}" "SaveImageRaw"
 				((RET += $?))
@@ -490,18 +490,18 @@ if [[ ${IMG_UPLOAD_FREQUENCY} -gt 0 ]]; then
 
 	if [[ ${R_SERVER} == "true" ]]; then
 		if [[ ${S_remoteserverimageuploadoriginalname} == "true" ]]; then
-			# Upload to hierarchical directory structure: images/YYYY/MMDD/
-			YEAR="${DATE_NAME:0:4}"
-			MMDD="${DATE_NAME:4:4}"
-			UPLOAD_DIR="images/${YEAR}/${MMDD}"
+			# Upload to hierarchical directory structure: images/YYYYMMDD/
+			UPLOAD_DIR="images/${DATE_NAME}"
 			DESTINATION_NAME="${IMAGE_NAME}"
+			
 			[[ ${ALLSKY_DEBUG_LEVEL} -ge 3 ]] && echo "${ME}: Uploading to ${UPLOAD_DIR}/${DESTINATION_NAME}"
 			upload_all --remote-server "${FILE_TO_UPLOAD}" "${UPLOAD_DIR}" "${DESTINATION_NAME}" "SaveImage"
 			((RET += $?))
 
 			# Upload raw image if enabled
 			if [[ ${S_remoteserverstorerawimage} == "true" && -f ${CURRENT_IMAGE} ]]; then
-				RAW_UPLOAD_DIR="raw_images/${YEAR}/${MMDD}"
+				RAW_UPLOAD_DIR="raw_images/${DATE_NAME}"
+				
 				[[ ${ALLSKY_DEBUG_LEVEL} -ge 3 ]] && echo "${ME}: Uploading raw image to ${RAW_UPLOAD_DIR}/${DESTINATION_NAME}"
 				upload_all --remote-server "${CURRENT_IMAGE}" "${RAW_UPLOAD_DIR}" "${DESTINATION_NAME}" "SaveImageRaw"
 				((RET += $?))
@@ -547,13 +547,11 @@ fi
 [[ -n ${ALLSKY_TIMELAPSE_PID_FILE} ]] && rm -f "${ALLSKY_TIMELAPSE_PID_FILE}"
 
 # We create ${WEBSITE_FILE} as late as possible to avoid it being overwritten.
-# If using hierarchical upload, create a symlink from image.jpg to the dated structure
+# If using hierarchical upload, create a symlink from image.jpg to existing images structure
 if [[ ( ${S_remotewebsiteimageuploadoriginalname} == "true" && ${S_useremotewebsite} == "true" ) || 
       ( ${S_remoteserverimageuploadoriginalname} == "true" && ${S_useremoteserver} == "true" ) ]]; then
-	# Create relative symlink: image.jpg -> images/YYYY/MMDD/YYYYMMDDHHMMSS.jpg
-	YEAR="${DATE_NAME:0:4}"
-	MMDD="${DATE_NAME:4:4}"
-	RELATIVE_PATH="images/${YEAR}/${MMDD}/${IMAGE_NAME}"
+	# Create relative symlink: image.jpg -> ../../images/YYYYMMDD/image-YYYYMMDDHHMMSS.jpg
+	RELATIVE_PATH="../../images/${DATE_NAME}/${IMAGE_NAME}"
 	
 	# Move current image to final location first
 	mv "${CURRENT_IMAGE}" "${WEBSITE_FILE}" || echo "ERROR: ${ME} Unable to rename current image to final name." >&2
