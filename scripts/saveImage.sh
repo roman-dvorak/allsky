@@ -471,6 +471,11 @@ if [[ ${IMG_UPLOAD_FREQUENCY} -gt 0 ]]; then
 			[[ ${ALLSKY_DEBUG_LEVEL} -ge 3 ]] && echo "${ME}: Uploading to ${UPLOAD_DIR}/${DESTINATION_NAME}"
 			upload_all --remote-web "${FILE_TO_UPLOAD}" "${UPLOAD_DIR}" "${DESTINATION_NAME}" "SaveImage"
 			((RET += $?))
+			
+			# Also upload current image as image.jpg to root directory
+			[[ ${ALLSKY_DEBUG_LEVEL} -ge 3 ]] && echo "${ME}: Uploading current image as ${ALLSKY_FULL_FILENAME}"
+			upload_all --remote-web "${FILE_TO_UPLOAD}" "" "${ALLSKY_FULL_FILENAME}" "SaveImageCurrent"
+			((RET += $?))
 
 			# Upload raw image if enabled
 			if [[ ${S_remotewebsitestorerawimage} == "true" && -f ${CURRENT_IMAGE} ]]; then
@@ -496,6 +501,11 @@ if [[ ${IMG_UPLOAD_FREQUENCY} -gt 0 ]]; then
 			
 			[[ ${ALLSKY_DEBUG_LEVEL} -ge 3 ]] && echo "${ME}: Uploading to ${UPLOAD_DIR}/${DESTINATION_NAME}"
 			upload_all --remote-server "${FILE_TO_UPLOAD}" "${UPLOAD_DIR}" "${DESTINATION_NAME}" "SaveImage"
+			((RET += $?))
+			
+			# Also upload current image as image.jpg to root directory
+			[[ ${ALLSKY_DEBUG_LEVEL} -ge 3 ]] && echo "${ME}: Uploading current image as ${ALLSKY_FULL_FILENAME}"
+			upload_all --remote-server "${FILE_TO_UPLOAD}" "" "${ALLSKY_FULL_FILENAME}" "SaveImageCurrent"
 			((RET += $?))
 
 			# Upload raw image if enabled
